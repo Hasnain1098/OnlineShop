@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using OnlineShop.Services;
@@ -46,7 +47,34 @@ builder.Services.AddAuthentication(options =>
 builder.Services.AddTransient<IAuthService, AuthService>();
 
 builder.Services.AddControllers();
-
+//Register for swagger Controller
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "My API", Version = "v1" });
+    //Add Security Defination
+    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter into field the word 'Bearer' followed by a space of your token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.ApiKey
+    });
+    //Add Security Requirment
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+        {
+            {
+                new OpenApiSecurityScheme
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Type = ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                },
+                Array.Empty<String>()
+            }
+        });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
