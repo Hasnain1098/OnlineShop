@@ -57,5 +57,5 @@ public class UserController : ControllerBase
             _logger.LogError(ex.Message);
             return StatusCode(StatusCodes.Status500InternalServerError, ex.Message);
         }
-    }
+     }
 }

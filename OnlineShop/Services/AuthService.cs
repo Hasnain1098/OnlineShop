@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Extensions;
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using System.IdentityModel.Tokens.Jwt;
+using System.Reflection.Metadata.Ecma335;
 using System.Security.Claims;
 using System.Text;
 
@@ -23,8 +25,13 @@ namespace OnlineShop.Services
         public async Task<(int, string)> Registeration(RegistrationModel model, string role)
         {
             role.ToLower();
-            string userRole = GetRole(role);
-            var userExists = await userManager.FindByNameAsync(model.Username);
+            //string userRole = GetRole(role);
+            IdentityRole? roleVar = await roleManager.FindByNameAsync(role);
+            if (roleVar == null)
+            {
+                return (0, "User role is invalid, please enter correct role");
+            }
+            User? userExists = await userManager.FindByNameAsync(model.Username);
             if (userExists != null)
                 return (0, "User already exists");
             User user = new User()
@@ -34,17 +41,14 @@ namespace OnlineShop.Services
                 UserName = model.Username,
                 Name = model.Name
             };
-            if (userRole == "invalid")
-            {
-                return (0, "User role is invalid, please enter correct role");
-            }
+           
             var createUserResult = await userManager.CreateAsync(user, model.Password);
             if (!createUserResult.Succeeded)
                 return (0, "User creation failed! Please check user details and try again.");
-            if (!await roleManager.RoleExistsAsync(userRole))
-                await roleManager.CreateAsync(new IdentityRole(userRole));
-            userManager.AddToRoleAsync(user, userRole);
-            return (1, "User created successfully! with role: " + userRole);
+
+
+            await userManager.AddToRoleAsync(user, (roleVar.Name != null)?roleVar.Name.ToString():string.Empty);
+            return (1, "User created successfully! with role: " + roleVar.Name);
         }
 
         public async Task<(int, string)> Login(LoginModel model)
@@ -88,11 +92,11 @@ namespace OnlineShop.Services
             var token = tokenHandler.CreateToken(tokenDescriptor);
             return tokenHandler.WriteToken(token);
         }
-        private string GetRole(string enteredRole) => enteredRole switch
-        {
-            "admin" => UserRoles.Admin,
-            "user" => UserRoles.User,
-            _ => "invalid"
-        };
+        //private string GetRole(string enteredRole) => enteredRole switch
+        //{
+        //    "admin" => UserRoles.Admin,
+        //    "user" => UserRoles.User,
+        //    _ => "invalid"
+        //};
     }
 }

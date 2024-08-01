@@ -1,33 +1,65 @@
-﻿using OnlineShop.Contracts;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 
 namespace OnlineShop.Repository
 {
     public class RoleRepository : IRoleRepository
     {
-        public Task<Role> CreateAsync(Role role)
+
+
+        private readonly ApplicationDbContext _context;
+        private readonly RoleManager<IdentityRole> _roleManager;
+
+        public RoleRepository(ApplicationDbContext context, RoleManager<IdentityRole> roleManager)
         {
-            throw new NotImplementedException();
+            this._context = context;
+            _roleManager = roleManager;
+        }
+        public async Task<Role> CreateAsync(Role role)
+        {
+            var roleStore = new RoleStore<IdentityRole>(_context); //Pass the instance of your DbContext here
+
+            if (!await _roleManager.RoleExistsAsync(role.Name))
+                await _roleManager.CreateAsync(new IdentityRole(role.Name));
+
+            //await this._context.AddAsync(role);
+            //await this._context.SaveChangesAsync();
+            return role;
         }
 
-        public Task DeleteAsync(int roleId)
+        public async Task DeleteAsync(int roleId)
         {
-            throw new NotImplementedException();
+            var role = await GetAsync(roleId);
+
+            if (role is null)
+            {
+                throw new Exception($"categoryID {roleId} is not found.");
+            }
+            this._context.Set<Role>().Remove(role);
+            await this._context.SaveChangesAsync();
         }
 
-        public Task<List<Role>> GetAllAsync()
+        public async Task<List<Role>> GetAllAsync()
         {
-            throw new NotImplementedException();
+            return await _context.Set<Role>().ToListAsync();
         }
 
-        public Task<Role?> GetAsync(int? roleId)
+        public async Task<Role?> GetAsync(int? roleId)
         {
-            throw new NotImplementedException();
+            if (roleId == null)
+            {
+                return null;
+            }
+            return await this._context.Roles.FindAsync(roleId);
         }
 
-        public Task UpdateAsync(Role role)
+        public async Task UpdateAsync(Role role)
         {
-            throw new NotImplementedException();
+            _context.Update(role);
+            await _context.SaveChangesAsync();
         }
     }
 }
