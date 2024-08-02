@@ -36,7 +36,7 @@ namespace OnlineShop.Repository
 
             if (role is null)
             {
-                throw new Exception($"categoryID {roleId} is not found.");
+                throw new Exception($"roleID {roleId} is not found.");
             }
             this._context.Set<Role>().Remove(role);
             await this._context.SaveChangesAsync();

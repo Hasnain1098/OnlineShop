@@ -7,7 +7,6 @@ using OnlineShop.Configurations;
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using OnlineShop.Repository;
-using OnlineShop.Services;
 using System.Text;
 
 
@@ -54,7 +53,7 @@ public class Program
              });
 
         // Add services to the container.
-        builder.Services.AddTransient<IAuthService, AuthService>();
+        builder.Services.AddTransient<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
         builder.Services.AddAutoMapper(typeof(MapperConfig));
