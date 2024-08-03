@@ -3,6 +3,8 @@ using OnlineShop.DataModels;
 using OnlineShop.DTOs;
 using Microsoft.EntityFrameworkCore.Query;
 using OnlineShop.DTOs.Roles;
+using OnlineShop.DTOs.Category;
+using OnlineShop.DTOs.Product;
 
 namespace OnlineShop.Configurations
 {
@@ -18,6 +20,18 @@ namespace OnlineShop.Configurations
             CreateMap<Role, GetRoleDto>().ReverseMap();
             CreateMap<Role, UpdateRoleDto>().ReverseMap();
             CreateMap<Role, DeleteRoleDto>().ReverseMap();
+            
+            //For Categories
+            CreateMap<Category, CreateCategoryDto>().ReverseMap();
+            CreateMap<Category, GetCategoryDto>().ReverseMap();
+            CreateMap<Category, UpdateCategoryDto>().ReverseMap();
+            CreateMap<Category, DeleteCategoryDto>().ReverseMap();
+            
+            //For products
+            CreateMap<Product, CreateProductDto>().ReverseMap();
+            CreateMap<Product, GetProductDto>().ReverseMap();
+            CreateMap<Product, UpdateProductDto>().ReverseMap();
+            CreateMap<Product, DeleteProductDto>().ReverseMap();
 
 
 

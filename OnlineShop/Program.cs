@@ -7,6 +7,7 @@ using OnlineShop.Configurations;
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using OnlineShop.Repository;
+using System.Security.Claims;
 using System.Text;
 
 
@@ -55,6 +56,8 @@ public class Program
         // Add services to the container.
         builder.Services.AddTransient<IUserRepository, UserRepository>();
         builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+        builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+        builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
         builder.Services.AddAutoMapper(typeof(MapperConfig));
 
@@ -87,6 +90,14 @@ public class Program
                 Array.Empty<String>()
             }
                 });
+        });
+        builder.Services.AddAuthorization(option =>
+        {
+            option.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin").RequireRole("Hr"));
+            option.AddPolicy("EmployeeOnly", policy => policy.RequireClaim("EmployeeNumber"));
+            option.AddPolicy("Over21", policy => policy.RequireAssertion(context =>
+            context.User.HasClaim(c =>
+            c.Type == ClaimTypes.DateOfBirth && DateTime.Parse(c.Value) <= DateTime.Today.AddYears(-21))));
         });
         var app = builder.Build();
 

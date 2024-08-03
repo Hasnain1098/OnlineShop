@@ -25,8 +25,8 @@ namespace OnlineShop.Repository
             if (!await _roleManager.RoleExistsAsync(role.Name))
                 await _roleManager.CreateAsync(new IdentityRole(role.Name));
 
-            //await this._context.AddAsync(role);
-            //await this._context.SaveChangesAsync();
+            await this._context.AddAsync(role);
+            await this._context.SaveChangesAsync();
             return role;
         }
 

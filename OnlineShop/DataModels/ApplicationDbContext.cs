@@ -16,5 +16,7 @@ namespace OnlineShop.DataModels
             // The base constructor handles initializing the DbContext with the provided options.
         }
         public DbSet<Role> Roles{ get; set; }
+        public DbSet<Category> Categories{ get; set; }
+        public DbSet<Product> Products{ get; set; }
     }
 }
