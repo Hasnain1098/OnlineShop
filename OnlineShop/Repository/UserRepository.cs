@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
-using Microsoft.OpenApi.Extensions;
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
-using System.Reflection.Metadata.Ecma335;
+using System.Runtime.Serialization;
 using System.Security.Claims;
 using System.Text;
 
@@ -24,9 +24,9 @@ namespace OnlineShop.Repository
             _configuration = configuration;
             _context = context;
         }
-        public async Task<(int, string)> CreateUser(RegistrationModel model, string role)
+        public async Task<(int, string)> CreateUser(RegistrationModel model, AllRoles selectedRole)
         {
-            role.ToLower();
+            string role = selectedRole.ToString().ToLower();
             //string userRole = GetRole(role);
             IdentityRole? roleVar = await roleManager.FindByNameAsync(role);
             if (roleVar == null)
@@ -45,11 +45,15 @@ namespace OnlineShop.Repository
             };
 
             var createUserResult = await userManager.CreateAsync(user, model.Password);
+
+            (string claimType, string claimValue) = GetClaimType_ClaimValue(selectedRole);
+            await userManager.AddClaimAsync(user, new Claim(claimType, claimValue));
             if (!createUserResult.Succeeded)
                 return (0, "User creation failed! Please check user details and try again.");
 
 
             await userManager.AddToRoleAsync(user, roleVar.Name != null ? roleVar.Name.ToString() : string.Empty);
+            
             return (1, "User created successfully! with role: " + roleVar.Name);
         }
 
@@ -63,6 +67,8 @@ namespace OnlineShop.Repository
                 return (0, "Invalid password");
 
             var userRoles = await userManager.GetRolesAsync(user);
+            var userClaims = await userManager.GetClaimsAsync(user); // Retrieve user claims
+
             var authClaims = new List<Claim>
             {
                new Claim(ClaimTypes.Name, user.UserName),
@@ -72,6 +78,11 @@ namespace OnlineShop.Repository
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+            }
+
+            foreach (var claim in userClaims) // Add user claims
+            {
+                authClaims.Add(claim);
             }
             string token = GenerateToken(authClaims);
             return (1, token);
@@ -102,7 +113,7 @@ namespace OnlineShop.Repository
             await userManager.DeleteAsync(user);
             return (1, $"User with email {userEmail} is Deleted");
         }
-         
+
         public async Task<List<User>> GetAllAsync()
         {
             return await userManager.Users.ToListAsync();
@@ -153,6 +164,26 @@ namespace OnlineShop.Repository
                 return (0, "User updation failed " + ex);
             }
         }
+        private (string, string) GetClaimType_ClaimValue(AllRoles role) => role switch
+        {
+            AllRoles.Admin => ("Claim_Admin", "Value_Admin"),
+            AllRoles.Manager => ("Claim_Manager", "Claim_Manager"),
+            AllRoles.Member => ("Claim_Member", "Claim_Member"),
+            AllRoles.HR => ("Claim_HR", "Claim_HR"),
 
+            _ => throw new ArgumentOutOfRangeException(nameof(role), $"Not expected role value: {role}")
+        };
+    }
+    public enum AllRoles
+    {
+
+        [EnumMember(Value = "Admin")]
+        Admin,
+        [EnumMember(Value = "Manager")]
+        Manager,
+        [EnumMember(Value = "Member")]
+        Member,
+        [EnumMember(Value = "HR")]
+        HR
     }
 }

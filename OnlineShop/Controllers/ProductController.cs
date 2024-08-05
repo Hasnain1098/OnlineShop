@@ -4,6 +4,7 @@ using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using OnlineShop.DTOs.Category;
 using OnlineShop.DTOs.Product;
+using OnlineShop.Repository;
 
 namespace OnlineShop.Controllers
 {
@@ -21,11 +22,12 @@ namespace OnlineShop.Controllers
         }
 
         [HttpPost("Add Product")]
-        public async Task<ActionResult<Product>> CreateRole(CreateProductDto createProductDto)
+        public async Task<ActionResult<Product>> CreateProduct(CreateProductDto createProductDto)
         {
-            var product = _mapper.Map<Product>(createProductDto);
-            await this._productRepository.CreateAsync(product);
-            return CreatedAtAction(nameof(GetProduct), new { id = product.Id }, product);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var product = await _productRepository.CreateAsync(createProductDto);
+            return Ok(product);
         }
 
         [HttpGet("Get product")]
@@ -49,37 +51,17 @@ namespace OnlineShop.Controllers
         }
 
         [HttpPut("Update Products")]
-        public async Task<ActionResult> UpdateProducts(int productId, UpdateProductDto updateProductDto)
+        public async Task<ActionResult> UpdateProducts(UpdateProductDto updateProductDto)
         {
-            if (productId!= updateProductDto.Id)
-            {
-                return BadRequest("Invalid PRODUCT Id: ");
-            }
-
-            var product = await _productRepository.GetAsync(productId);
-            if (product == null)
-            {
-                throw new Exception($"ProductID {productId} is not found");
-            }
-
-            _mapper.Map(updateProductDto, product);
-
-            try
-            {
-                await _productRepository.UpdateAsync(product);
-            }
-            catch (Exception)
-            {
-                throw new Exception($"Error occured while updating productID {productId}.");
-            }
-
-            return NoContent();
+            var product = await _productRepository.UpdateAsync(updateProductDto);
+            return Ok(product);
         }
 
         [HttpDelete("Delete Product")]
         public async Task<IActionResult> DeleteCategory(int productId)
         {
             await _productRepository.DeleteAsync(productId);
+
             return NoContent();
         }
     }

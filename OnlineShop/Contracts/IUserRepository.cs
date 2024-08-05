@@ -1,10 +1,11 @@
 ﻿using OnlineShop.DataModels;
+using OnlineShop.Repository;
 
 namespace OnlineShop.Contracts
 {
     public interface IUserRepository
     {
-        Task<(int, string)> CreateUser(RegistrationModel model, string role);
+        Task<(int, string)> CreateUser(RegistrationModel model,  AllRoles roles);
         Task<(int, string)> Login(LoginModel model);
 
         Task<(int, string)> DeleteUserAsync(string emailId);

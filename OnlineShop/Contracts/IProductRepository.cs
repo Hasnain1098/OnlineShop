@@ -1,17 +1,20 @@
 ﻿using OnlineShop.DataModels;
+using OnlineShop.DTOs.Product;
 
 namespace OnlineShop.Contracts
 {
     public interface IProductRepository
     {
-        Task<Product?> GetAsync(int? productId);
+        Task<Product?> CreateAsync(CreateProductDto createProductDTO);
 
-        Task<List<Product>> GetAllAsync();
+        Task<GetProductDto?> GetAsync(int? productId);
+       
 
-        Task<Product> CreateAsync(Product product);
+        Task<List<GetProductDto>> GetAllAsync();
 
-        Task DeleteAsync(int productId);
 
-        Task UpdateAsync(Product product);
+        Task DeleteAsync(int id);
+
+        Task<Product?> UpdateAsync(UpdateProductDto updateProductDTO);
     }
 }

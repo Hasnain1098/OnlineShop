@@ -2,6 +2,7 @@
 using OnlineShop.Contracts;
 using OnlineShop.DataModels;
 using OnlineShop.DTOs.Roles;
+using OnlineShop.Repository;
 
 [Route("api/[controller]")]
 [ApiController]
@@ -39,7 +40,7 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("registeration")]
-    public async Task<IActionResult> CreateUser(RegistrationModel model, string role)
+    public async Task<IActionResult> CreateUser(RegistrationModel model, AllRoles role)
     {
         try
         {

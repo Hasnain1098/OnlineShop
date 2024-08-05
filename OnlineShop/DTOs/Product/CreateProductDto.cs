@@ -9,5 +9,8 @@ namespace OnlineShop.DTOs.Product
 
         [Required]
         public string? Description { get; set; }
+
+        [Required]
+        public int CategoryId { get; set; }
     }
 }

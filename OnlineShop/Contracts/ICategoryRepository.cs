@@ -1,17 +1,18 @@
 ﻿using OnlineShop.DataModels;
+using OnlineShop.DTOs.Category;
 
 namespace OnlineShop.Contracts
 {
     public interface ICategoryRepository
     {
-        Task<Category?> GetAsync(int? categoryId);
+        Task<GetCategoryDto?> GetAsync(int? categoryId);
 
-        Task<List<Category>> GetAllAsync();
+        Task<IEnumerable<GetCategoryDto>> GetAllAsync();
 
-        Task<Category> CreateAsync(Category category);
+        Task<Category> CreateAsync(CreateCategoryDto createCategoryDto);
 
         Task DeleteAsync(int categoryId);
 
-        Task UpdateAsync(Category category);
+        Task<Category?> UpdateAsync(UpdateCategoryDto updateCategoryDTO);
     }
 }

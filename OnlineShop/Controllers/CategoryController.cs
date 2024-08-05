@@ -20,12 +20,13 @@ namespace OnlineShop.Controllers
             _categoryRepository = categoryRepository;
         }
 
-        [HttpPost("Add Category")]
-        public async Task<ActionResult<Category>> CreateRole(CreateCategoryDto createCategoryDto)
+        [HttpPost("CreateCategory")]
+        public async Task<IActionResult> CreateCategory(CreateCategoryDto createCategoryDto)
         {
-            var category = _mapper.Map<Category>(createCategoryDto);
-            await this._categoryRepository.CreateAsync(category);
-            return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+            var Category = await _categoryRepository.CreateAsync(createCategoryDto);
+            return Ok(Category);
         }
 
         [HttpGet("Get Category")]
@@ -48,32 +49,11 @@ namespace OnlineShop.Controllers
             return Ok(records);
         }
 
-        [HttpPut("Update Categories")]
-        public async Task<ActionResult> UpdateRoles(int categoryId, UpdateCategoryDto updateCategoryDto)
+        [HttpPut("UpdateCategory")]
+        public async Task<IActionResult> UpdateCategory(UpdateCategoryDto updateCategoryDto)
         {
-            if (categoryId!= updateCategoryDto.Id)
-            {
-                return BadRequest("Invalid Category Id");
-            }
-
-            var category = await _categoryRepository.GetAsync(categoryId);
-            if (category == null)
-            {
-                throw new Exception($"CategoryID {categoryId} is not found");
-            }
-
-            _mapper.Map(updateCategoryDto, category);
-
-            try
-            {
-                await _categoryRepository.UpdateAsync(category);
-            }
-            catch (Exception)
-            {
-                throw new Exception($"Error occured while updating categoryID {categoryId}.");
-            }
-
-            return NoContent();
+            var category = await _categoryRepository.UpdateAsync(updateCategoryDto);
+            return Ok(category);
         }
 
         [HttpDelete("Delete Category")]

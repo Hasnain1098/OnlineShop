@@ -5,12 +5,12 @@ namespace OnlineShop.DTOs.Category
     public class UpdateCategoryDto
     {
         [Required]
-        public int? Id { get; set; }
+        public int? CategoryID { get; set; }
 
         [Required]
-        public string? Name { get; set; }
+        public string? NewName { get; set; }
 
         [Required]
-        public string? Description { get; set; }
+        public string? NewDescription { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using OnlineShop.DTOs.Product;
+using System.ComponentModel.DataAnnotations;
 
 namespace OnlineShop.DTOs.Category
 {
@@ -9,5 +10,8 @@ namespace OnlineShop.DTOs.Category
 
         [Required]
         public string? Description { get; set; }
+
+        [Required]
+        public ICollection<GetProductDto> Products { get; set; } = new List<GetProductDto>();
     }
 }

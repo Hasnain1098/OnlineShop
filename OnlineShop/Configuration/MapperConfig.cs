@@ -36,7 +36,10 @@ namespace OnlineShop.Configurations
 
 
 
-
+            // Mappings to handle cyclical references
+            CreateMap<Category, GetCategoryDto>()
+                .ForMember(dest => dest.Products, opt => opt.MapFrom(src => src.Products));
+            CreateMap<Product, GetCategoryDto>();
 
             //CreateMap<Category, GetCategoryProductsDto>()
             //    .AfterMap((src, dest) =>

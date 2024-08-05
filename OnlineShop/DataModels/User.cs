@@ -7,5 +7,6 @@ namespace OnlineShop.DataModels
     {
         [MaxLength(30)]
         public string? Name { get; set; }
+
     }
 }

@@ -5,6 +5,6 @@ namespace OnlineShop.DTOs.Product
     public class DeleteProductDto
     {
         [Required]
-        public int Id { get; set; }
+        public int ProductID { get; set; }
     }
 }

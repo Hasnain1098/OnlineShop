@@ -9,6 +9,7 @@ using OnlineShop.DataModels;
 using OnlineShop.Repository;
 using System.Security.Claims;
 using System.Text;
+using Newtonsoft.Json.Converters;
 
 
 public class Program
@@ -60,9 +61,15 @@ public class Program
         builder.Services.AddScoped<IProductRepository, ProductRepository>();
 
         builder.Services.AddAutoMapper(typeof(MapperConfig));
+        builder.Services.AddMemoryCache();
 
 
         builder.Services.AddControllers();
+        builder.Services.AddControllers().AddNewtonsoftJson(options =>
+        {
+            options.SerializerSettings.Converters.Add(new StringEnumConverter());
+            options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore;
+        });
         //Register for swagger Controller
         builder.Services.AddSwaggerGen(c =>
         {
@@ -90,11 +97,18 @@ public class Program
                 Array.Empty<String>()
             }
                 });
+            // Add this line to support enums as strings in Swagger
+            c.UseAllOfToExtendReferenceSchemas();
+
         });
+
+        // Enable support for Newtonsoft.Json in Swashbuckle
+        builder.Services.AddSwaggerGenNewtonsoftSupport();
+
         builder.Services.AddAuthorization(option =>
         {
             option.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin").RequireRole("Hr"));
-            option.AddPolicy("EmployeeOnly", policy => policy.RequireClaim("EmployeeNumber"));
+            option.AddPolicy("TestPolicy", policy => policy.RequireClaim("Claim1", "Value1"));
             option.AddPolicy("Over21", policy => policy.RequireAssertion(context =>
             context.User.HasClaim(c =>
             c.Type == ClaimTypes.DateOfBirth && DateTime.Parse(c.Value) <= DateTime.Today.AddYears(-21))));
@@ -105,7 +119,7 @@ public class Program
         if (app.Environment.IsDevelopment())
         {
             app.UseSwagger();
-            app.UseSwaggerUI();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "My API V1"));
         }
 
         app.UseAuthentication();

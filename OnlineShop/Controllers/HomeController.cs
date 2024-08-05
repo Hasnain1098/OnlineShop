@@ -70,5 +70,12 @@ namespace Online_Shop.Controllers
         {
             return Ok(new { message = "Test User Policy API" });
         }
+
+        [HttpGet("TestUserClaimRole")]
+        [Authorize(Policy = "TestPolicy")]
+        public IActionResult TestClaimsTest1Role()
+        {
+            return Ok(new { message = "Test ClaimsTest1 API" });
+        }
     }
 }
