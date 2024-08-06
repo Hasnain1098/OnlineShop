@@ -28,14 +28,15 @@ namespace OnlineShop.Repository
         {
             string role = selectedRole.ToString().ToLower();
             //string userRole = GetRole(role);
-            IdentityRole? roleVar = await roleManager.FindByNameAsync(role);
-            if (roleVar == null)
-            {
+            //Get the roles from tables and check if it already exsists.
+            IdentityRole? roleFromDB = await roleManager.FindByNameAsync(role);
+            if (roleFromDB == null)
                 return (0, "User role is invalid, please enter correct role");
-            }
+            //Get the user from table and check if it already exsists.
             User? userExists = await userManager.FindByNameAsync(model.Username);
             if (userExists != null)
                 return (0, "User already exists");
+            //if not create a new one
             User user = new User()
             {
                 Email = model.Email,
@@ -43,18 +44,20 @@ namespace OnlineShop.Repository
                 UserName = model.Username,
                 Name = model.Name
             };
-
             var createUserResult = await userManager.CreateAsync(user, model.Password);
-
-            (string claimType, string claimValue) = GetClaimType_ClaimValue(selectedRole);
-            await userManager.AddClaimAsync(user, new Claim(claimType, claimValue));
+            //Failed due to any reason.
             if (!createUserResult.Succeeded)
                 return (0, "User creation failed! Please check user details and try again.");
-
-
-            await userManager.AddToRoleAsync(user, roleVar.Name != null ? roleVar.Name.ToString() : string.Empty);
-            
-            return (1, "User created successfully! with role: " + roleVar.Name);
+            //IF user is created
+            string roleName = roleFromDB.Name != null ? roleFromDB.Name.ToString() : string.Empty;
+            await userManager.AddToRoleAsync(user, roleName);
+            // Add claims based on Role
+            (string roleClaimType, string roleClaimValue) = GetRoleClaims(selectedRole);
+            await roleManager.AddClaimAsync(roleFromDB, new Claim(roleClaimType, roleClaimValue));
+            // Add claims based on User
+            (string userClaimType, string userClaimValue) = GetUserClaims(user);
+            await userManager.AddClaimAsync(user, new Claim(userClaimType, userClaimValue));
+            return (1, "User created successfully! with role: " + roleFromDB.Name);
         }
 
 
@@ -65,27 +68,35 @@ namespace OnlineShop.Repository
                 return (0, "Invalid username");
             if (!await userManager.CheckPasswordAsync(user, model.Password))
                 return (0, "Invalid password");
-
             var userRoles = await userManager.GetRolesAsync(user);
             var userClaims = await userManager.GetClaimsAsync(user); // Retrieve user claims
-
+                                                                     //Claim Variable to hold all Claims
             var authClaims = new List<Claim>
-            {
-               new Claim(ClaimTypes.Name, user.UserName),
-               new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
-
+     {
+         new Claim(ClaimTypes.Name, user.UserName),
+         new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+     };
+            //Add Role based claims according to Role/Roles
             foreach (var userRole in userRoles)
             {
                 authClaims.Add(new Claim(ClaimTypes.Role, userRole));
+                // Retrieve role claims and add them to authClaims
+                var role = await roleManager.FindByNameAsync(userRole);
+                if (role != null)
+                {
+                    var roleClaims = await roleManager.GetClaimsAsync(role);
+                    foreach (var roleClaim in roleClaims)
+                    {
+                        authClaims.Add(roleClaim);
+                    }
+                }
             }
-
             foreach (var claim in userClaims) // Add user claims
             {
                 authClaims.Add(claim);
             }
             string token = GenerateToken(authClaims);
-            return (1, token);
+            return (1, $"Bearer {token}");
         }
 
         private string GenerateToken(IEnumerable<Claim> claims)
@@ -164,7 +175,14 @@ namespace OnlineShop.Repository
                 return (0, "User updation failed " + ex);
             }
         }
-        private (string, string) GetClaimType_ClaimValue(AllRoles role) => role switch
+        private (string, string) GetUserClaims(User user)
+        {
+            string roleClaimType = $"Claim_{user.UserName}";
+            string roleClaimValue = $"Value_{user.UserName}";
+            return (roleClaimType, roleClaimValue);
+        }
+
+        private (string, string) GetRoleClaims(AllRoles role) => role switch
         {
             AllRoles.Admin => ("Claim_Admin", "Value_Admin"),
             AllRoles.Manager => ("Claim_Manager", "Claim_Manager"),
@@ -174,6 +192,7 @@ namespace OnlineShop.Repository
             _ => throw new ArgumentOutOfRangeException(nameof(role), $"Not expected role value: {role}")
         };
     }
+
     public enum AllRoles
     {
 
@@ -185,5 +204,6 @@ namespace OnlineShop.Repository
         Member,
         [EnumMember(Value = "HR")]
         HR
+
     }
 }

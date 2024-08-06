@@ -40,13 +40,13 @@ public class UserController : ControllerBase
 
     [HttpPost]
     [Route("registeration")]
-    public async Task<IActionResult> CreateUser(RegistrationModel model, AllRoles role)
+    public async Task<IActionResult> CreateUser(RegistrationModel model, AllRoles selectedRole)
     {
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest("Invalid payload");
-            var (status, message) = await _userRepository.CreateUser(model, role);
+            var (status, message) = await _userRepository.CreateUser(model, selectedRole);
             if (status == 0)
             {   
                 return BadRequest(message);
@@ -81,6 +81,7 @@ public class UserController : ControllerBase
         var users = await _userRepository.GetAllAsync();  
         return Ok(users);
     }
+
     [HttpDelete]
     [Route("DeleteUser")]
     public async Task<IActionResult> DeleteUser(string email)
